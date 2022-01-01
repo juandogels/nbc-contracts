@@ -1,0 +1,23 @@
+Accurate as of 01/01/2022
+
+There are currently 6 rarities - common, uncommon, rare, epic, legendary, mythical.
+The chances of obtaining each of them are as follows:
+
+Common - 65%
+Uncommon - 20%
+Rare - 10%
+Epic - 4%
+Legendary - 0.9%
+Mythical - 0.1%
+
+Therefore, we base the rarity value off of 1000 points.
+
+Common = 1-650
+Uncommon = 651-850
+Rare = 851-950
+Epic = 951-990
+Legendary = 991-999
+Mythical = 1000
+
+The results will be shown in the 1000 point basis from the blockchain but will be reflected with its actual rarity in-game.
+This is to allow flexibility for changes in rarity from the blockchain side when minting NBMons.

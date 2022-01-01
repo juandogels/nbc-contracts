@@ -1,0 +1,16 @@
+Accurate as of 01/01/2022
+
+The maximum Potential that an NBMon can obtain is 65 for each stat when minted.
+Rarity DOES play a part for Potential by breeding.
+Based on the current rarities from './rarity.txt':
+
+1) For common, you can earn up to 20 Potential for origin and 15 for H + W (hybrid and wild)
+2) For uncommon, you can earn up to 25 Potential for origin and 20 for H + W
+3) For rare, you can earn up to 35 Potential for origin and 25 for H + W
+4) For epic, you can earn up to 45 Potential for origin and 30 for H + W
+5) For legendary, you can earn up to 55 Potential for origin and 40 for H + W
+6) For mythical, you can earn up to 65 Potential for origin and 50 for H + W
+
+
+These values will NOT be reflected from the raw blockchain data output when minted but ONLY in the marketplace/in-game.
+So if you own a common NBMon that has 65 Potential, it will be counted as 65/65*20 = 20 in the marketplace/game.

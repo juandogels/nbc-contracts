@@ -1,0 +1,7 @@
+Accurate as of 01/01/2022
+
+The current base evolution duration time for a common NBMon to be able to evolve to an adult is 259200 seconds/3 days.
+Each rarity has an increment to the evolution duration time of 86400 seconds/1 day.
+This means that:
+
+Common NBMons take 259200 seconds/3 days.

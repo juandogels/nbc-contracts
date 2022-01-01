@@ -1,0 +1,10 @@
+Accurate as of 01/01/2022
+
+NBMonCore.sol has a _shinyChance variable that shows the values it can get.
+For now, it is set at 4096, which means that the values can range from 1-4096.
+
+The chance of obtaining a shiny NBMon is always set at 1/_shinyChance.
+So, right now you have a 1/4096 chance of obtaining a shiny NBMon, or:
+
+1 = shiny
+2-4096 = not shiny
