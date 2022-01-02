@@ -19,55 +19,40 @@ contract NBMonCore is NFTCore {
     struct NBMon {
         // tokenId for NBMon
         uint256 nbmonId;
-        // check './gamestats/genders.txt' for more info.
-        uint8 gender;
-        // check './gamestats/rarityChance.txt' for more info.
-        uint8 rarity;
-        // check './gamestats/shinyChance.txt' for more info.
-        bool isShiny;
         // current owner for NBMon
         address owner;
-        // timestamp of when NBMon is/was born
         uint256 bornAt;
         // timestamp of when NBMon was transferred to current owner (when selling in marketplace, transferring from wallet etc)
         uint256 transferredAt;
+        //contains gender, rarity, isShiny, evolveDuration, nbmonType, genera and fertility
+        // check './gamestats/genders.txt' for more info.
+        // check './gamestats/rarityChance.txt' for more info.
+        // check './gamestats/shinyChance.txt' for more info.
         //check './gamestats/evolveDuration.txt' for more info.
-        uint32 evolveDuration;
         // check './gamestats/nbmonTypes.txt' for more info.
-        uint8 nbmonType;
         // check './gamestats/genera.txt' for more info.
-        uint16 genera;
+        // check './gamestats/fertility.txt' for more info
+        uint32[] nbmonStats;
 
         // Each NBMon can have up to two elements. There is also a chance to get "null" for any of the two element slots.
         // more on elements at './gamestats/elements.txt'
-        uint8 elementOne;
-        uint8 elementTwo;
+        uint8[] elements;
 
         /// @dev contains all of the potential of the NBMon
         /// including health pool, energy, attack, special attack, defense, special defense, speed
         /// Note: does NOT take into consideration of rarity in the blockchain side. Actual EV stats will be reflected in-game.
         /// check './gamestats/potential.txt' for more info.
-        uint8 hpPotential;
-        uint8 energyPotential;
-        uint8 attackPotential;
-        uint8 defensePotential;
-        uint8 spAttPotential;
-        uint8 spDefPotential;
-        uint8 speedPotential;
+        uint8[] potential;
 
         // only used for breeding to inherit 2 passives from the passive set of the parent NBMons
+        // if minted, it will be an empty array
         // check './gamestats/passives.txt' for more info
-        uint8 passiveOne;
-        uint8 passiveTwo;
+        uint8[] inheritedPassives;
 
         // only used for breeding to inherit 2 moves from the move set of the parent NBMons
+        // if minted, it will be an empty array
         // check './gamestats/moveset.txt' for more info
-        uint8 moveOne;
-        uint8 moveTwo;
-
-        // checks the amount of times it can breed. maximum fertility is 8
-        // check './gamestats/fertility.txt' for more info
-        uint16 fertility;
+        uint8[] inheritedMoves;  
     }
 
     NBMon[] internal nbmons;
@@ -116,7 +101,8 @@ contract NBMonCore is NFTCore {
     uint16 public _rarityChance = 1000;
     // check ./gamestats/nbmonTypes.txt for further information
     uint8 public _nbmonTypes = 3;
-    uint16 public _genus = 11;
+    //check ./gamestats/genera.txt for further information
+    uint16 public _genera = 11;
     // chance to obtain shiny NBMon is 1/4096.
     uint16 public _shinyChance = 4096;
     //if result is 1, it's considered null, and therefore no element is assigned. 2-13 are elements identified in elements.txt.
@@ -135,8 +121,8 @@ contract NBMonCore is NFTCore {
     function changeNbmonTypes(uint8 nbmonTypes_) public onlyAdmin {
         _nbmonTypes = nbmonTypes_;
     }
-    function changeGenus(uint16 genus_) public onlyAdmin {
-        _genus = genus_;
+    function changeGenera(uint16 genera_) public onlyAdmin {
+        _genera = genera_;
     }
     function changeShinyChance(uint8 shinyChance_) public onlyAdmin {
         _shinyChance = shinyChance_;
@@ -154,106 +140,74 @@ contract NBMonCore is NFTCore {
      * END OF BASE STATS CHANGE
      */
 
-     function mintOrigin(uint256 _randomNumber, address _owner, uint32 _evolveDurationTime) public {
-         _mintOrigin(_randomNumber, _owner, _evolveDurationTime);
-     }
+    function _randomizePotential(uint256 _randomNumber) private view returns (uint8[] memory _potential) {
+        _potential = new uint8[](7);
+
+        for (uint8 i = 0; i < 7; i++) {
+            _potential[i] = uint8(uint256(keccak256(abi.encode(_randomNumber, i))) % _maxPotential + 1);
+        }
+
+        return _potential;
+    }
+
+    function _randomizeElements(uint256 _randomNumber) private view returns (uint8[] memory _elements) {
+        _elements = new uint8[](2);
+
+        for (uint8 i = 0; i < 2; i++) {
+            _elements[i] = uint8(uint256(keccak256(abi.encode(_randomNumber, i))) % _elementTypes + 1);
+        }
+        // first element must NOT be null. If it is null, it is converted to a natural species instead.
+        // second element MAY be a null element.
+        if (_elements[0] == 1) {
+            _elements[0] = 2;
+        }
+
+        return _elements;
+    }
+
+    function _randomizeNbmonStatsOrigin(uint256 _randomNumber, uint32 _baseEvolveDuration) private view returns (uint32[] memory _nbmonStats) {
+        _nbmonStats = new uint32[](8);
+        
+        //randomizing gender
+        _nbmonStats[0] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _genders + 1);
+        //randomizing rarity
+        _nbmonStats[1] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _rarityChance + 1);
+        //randomizing isShiny
+        _nbmonStats[2] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _shinyChance + 1);
+        //randomizing nbmonType (only origin, so result is always 1)
+        _nbmonStats[3] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % 1 + 1);
+        //evolveDuration
+        _nbmonStats[4] = _baseEvolveDuration;
+        //randomizing nbmonType
+        _nbmonStats[5] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _nbmonTypes + 1);
+        //randomizing genera
+        _nbmonStats[6] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _genera + 1);
+        //randomizing fertility
+        _nbmonStats[7] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _baseFertilityChance + 1);
+    }
+    
+    function mintOrigin(uint256 _randomNumber, address _owner, uint32 _evolveDurationTime) public {
+        _mintOrigin(_randomNumber, _owner, _evolveDurationTime);
+    }
 
     /// Note: _randomNumber will be randomized from the server side and passed on as an argument.
-    function _mintOrigin(uint256 _randomNumber, address _owner, uint32 _evolveDurationTime) private {
-        uint256[] memory values = new uint256[](15);
-        for (uint256 i = 0; i < 15; i++) {
-            values[i] = uint256(keccak256(abi.encode(_randomNumber, i)));
-        }
-        uint8 _gender = uint8(values[0] % _genders) + 1;
-        uint8 _rarity = uint8(values[1] % _rarityChance) + 1;
-        uint8 _isShiny = uint8(values[2] % _shinyChance) + 1;
-        uint8 _nbmonType = uint8(values[3] % 1) + 1;
-        uint16 _genera = uint16(values[4] % _genus) + 1;
-        uint8 _elementOne = uint8(values[5] % _elementTypes) + 1;
-        uint8 _elementTwo = uint8(values[6] % _elementTypes) + 1;
-        uint8 _hpPotential = uint8(values[7] % _maxPotential) + 1;
-        uint8 _energyPotential = uint8(values[8] % _maxPotential) + 1;
-        uint8 _attackPotential = uint8(values[9] % _maxPotential) + 1;
-        uint8 _defensePotential = uint8(values[10] % _maxPotential) + 1;
-        uint8 _spAttPotential = uint8(values[11] % _maxPotential) + 1;
-        uint8 _spDefPotential = uint8(values[12] % _maxPotential) + 1;
-        uint8 _speedPotential = uint8(values[13] % _maxPotential) + 1;
-        uint8 _fertility = uint8(values[14] % _baseFertilityChance) + 1;
-
-        uint8 gender_;
-        uint8 rarity_;
-        bool isShiny_;
-        uint8 nbmonType_;
-        uint16 genera_;
-        uint8 elementOne_;
-        uint8 elementTwo_;
-        uint8 hpPotential_;
-        uint8 energyPotential_;
-        uint8 attackPotential_;
-        uint8 defensePotential_;
-        uint8 spAttPotential_;
-        uint8 spDefPotential_;
-        uint8 speedPotential_;
-        uint8 fertility_;
-
-        // assign gender_ to result obtained from randomization (_gender)
-        gender_ = _gender;
-        // assign rarity_ to result obtained from randomization (_rarity)
-        rarity_ = _rarity;
-        // assign isShiny_ to result obtained from randomization (_isShiny)
-        if (_isShiny <= 1) {
-            isShiny_ = true;
-        } else {
-            isShiny_ = false;
-        }
-        // assign nbmonType_ to result obtained from randomization (_nbmonType)
-        nbmonType_ = _nbmonType;
-        //assign genera_ to result obtained from randomization (_genera)
-        genera_ = _genera;
-        //assign elementOne and elementTwo to result obtained from randomization (_elementOne)
-        //elementOne MUST be a non-null element. If it is = 1 (= null), it will get the neutral element instead.
-        if (_elementOne == 1) {
-            elementOne_ = 2;
-        } else {
-            elementOne_ = _elementOne;
-        }
-        elementTwo_ = _elementTwo;
-        //assign all the Potentials to the result obtained from randomization (_hpPotential, _energyPotential etc)
-        hpPotential_ = _hpPotential;
-        energyPotential_ = _energyPotential;
-        attackPotential_ = _attackPotential;
-        defensePotential_ = _defensePotential;
-        spAttPotential_ = _spAttPotential;
-        spDefPotential_ = _spDefPotential;
-        speedPotential_ = _speedPotential;
-        //assign fertility_ to result obtained from randomization (_fertility)
-        fertility_ = _fertility;
+    function _mintOrigin(uint256 _randomNumber, address _owner, uint32 _baseEvolveDuration) private {
+        uint32[] memory _nbmonStats = _randomizeNbmonStatsOrigin(_randomNumber, _baseEvolveDuration);
+        uint8[] memory _elements = _randomizeElements(_randomNumber);
+        uint8[] memory _potential = _randomizePotential(_randomNumber);
+        uint8[] memory _inheritedPassives;
+        uint8[] memory _inheritedMoves;
 
         NBMon memory _nbmon = NBMon(
             currentNBMonCount,
-            gender_,
-            rarity_,
-            isShiny_,
             _owner,
             block.timestamp,
             block.timestamp,
-            _evolveDurationTime,
-            nbmonType_,
-            genera_,
-            elementOne_,
-            elementTwo_,
-            hpPotential_,
-            energyPotential_,
-            attackPotential_,
-            defensePotential_,
-            spAttPotential_,
-            spDefPotential_,
-            speedPotential_,
-            0,
-            0,
-            0,
-            0,
-            fertility_
+            _nbmonStats,
+            _elements,
+            _potential,
+            _inheritedPassives,
+            _inheritedMoves
         );
         nbmons.push(_nbmon);
         ownerNBMons[_owner].push(_nbmon);
@@ -268,14 +222,8 @@ contract NBMonCore is NFTCore {
      * @dev Singular purpose functions designed to make reading code easier for front-end
      * Otherwise not needed since getNBMon and getAllNBMonsOfOwner and getNBMon contains complete information at once
      */
-    function getGender(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].gender;
-    }
-    function getRarity(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].rarity;
-    }
-    function getIsShiny(uint256 _nbmonId) public view returns (bool) {
-         return nbmons[_nbmonId - 1].isShiny;
+    function getNbmonStats(uint256 _nbmonId) public view returns (uint32[] memory) {
+        return nbmons[_nbmonId - 1].nbmonStats;
     }
     function getBornAt(uint256 _nbmonId) public view returns (uint256) {
         return nbmons[_nbmonId - 1].bornAt;
@@ -283,56 +231,16 @@ contract NBMonCore is NFTCore {
     function getTransferredAt(uint256 _nbmonId) public view returns (uint256) {
         return nbmons[_nbmonId - 1].transferredAt;
     }
-    function getEvolveDuration(uint256 _nbmonId) public view returns (uint32) {
-        return nbmons[_nbmonId - 1].evolveDuration;
+    function getElements(uint256 _nbmonId) public view returns (uint8[] memory) {
+        return nbmons[_nbmonId - 1].elements;
     }
-    function getNbmonType(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].nbmonType;
+    function getPotential(uint256 _nbmonId) public view returns (uint8[] memory) {
+        return nbmons[_nbmonId - 1].potential;
     }
-     function getGenera(uint256 _nbmonId) public view returns (uint16) {
-        return nbmons[_nbmonId - 1].genera;
+    function getInheritedPassives(uint256 _nbmonId) public view returns (uint8[] memory) {
+        return nbmons[_nbmonId - 1].inheritedPassives;
     }
-    function getelementOne(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].elementOne;
-    }
-    function getelementTwo(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].elementTwo;
-    }
-    function getComboPotential(uint256 _nbmonId) public view returns (
-        uint8 _hpPotential,
-        uint8 _energyPotential,
-        uint8 _attackPotential,
-        uint8 _defensePotential,
-        uint8 _spAttPotential,
-        uint8 _spDefPotential,
-        uint8 _speedPotential
-    ) {
-        NBMon memory _nbmon = nbmons[_nbmonId - 1];
-        return (
-            _nbmon.hpPotential,
-            _nbmon.energyPotential,
-            _nbmon.attackPotential,
-            _nbmon.defensePotential,
-            _nbmon.spAttPotential,
-            _nbmon.spDefPotential,
-            _nbmon.speedPotential
-        );
-    }
-
-    function getPassiveOne(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].passiveOne;
-    }
-    function getPassiveTwo(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].passiveTwo;
-    }
-    function getMoveOne(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].moveOne;
-    }
-    function getMoveTwo(uint256 _nbmonId) public view returns (uint8) {
-        return nbmons[_nbmonId - 1].moveTwo;
-    }
-
-    function getFertility(uint256 _nbmonId) public view returns (uint16) {
-        return nbmons[_nbmonId - 1].fertility;
+    function getInheritedMoves(uint256 _nbmonId) public view returns (uint8[] memory) {
+        return nbmons[_nbmonId - 1].inheritedMoves;
     }
 }
