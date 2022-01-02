@@ -24,7 +24,7 @@ contract NBMonCore is NFTCore {
         uint256 bornAt;
         // timestamp of when NBMon was transferred to current owner (when selling in marketplace, transferring from wallet etc)
         uint256 transferredAt;
-        //contains gender, rarity, isShiny, evolveDuration, nbmonType, genera and fertility
+        //contains gender, rarity, isShiny, nbmonType, evolveDuration, genera and fertility
         // check './gamestats/genders.txt' for more info.
         // check './gamestats/rarityChance.txt' for more info.
         // check './gamestats/shinyChance.txt' for more info.
@@ -127,7 +127,7 @@ contract NBMonCore is NFTCore {
     function changeShinyChance(uint8 shinyChance_) public onlyAdmin {
         _shinyChance = shinyChance_;
     }
-    function changeelementTypes(uint8 elementTypes_) public onlyAdmin {
+    function changeElementTypes(uint8 elementTypes_) public onlyAdmin {
         _elementTypes = elementTypes_;
     }
     function changeMaxPotential(uint8 maxPotential_) public onlyAdmin {
@@ -140,55 +140,53 @@ contract NBMonCore is NFTCore {
      * END OF BASE STATS CHANGE
      */
 
-    function _randomizePotential(uint256 _randomNumber) private view returns (uint8[] memory _potential) {
-        _potential = new uint8[](7);
+     function _randomizePotential(uint256 _randomNumber) private view returns (uint8[] memory _potential) {
+         _potential = new uint8[](7);
 
-        for (uint8 i = 0; i < 7; i++) {
-            _potential[i] = uint8(uint256(keccak256(abi.encode(_randomNumber, i))) % _maxPotential + 1);
-        }
+         for (uint8 i = 0; i < 7; i++) {
+             _potential[i] = uint8(uint256(keccak256(abi.encode(_randomNumber, i))) % _maxPotential + 1);
+         }
 
-        return _potential;
-    }
+         return _potential;
+     }
 
-    function _randomizeElements(uint256 _randomNumber) private view returns (uint8[] memory _elements) {
-        _elements = new uint8[](2);
+     function _randomizeElements(uint256 _randomNumber) private view returns (uint8[] memory _elements) {
+         _elements = new uint8[](2);
 
-        for (uint8 i = 0; i < 2; i++) {
-            _elements[i] = uint8(uint256(keccak256(abi.encode(_randomNumber, i))) % _elementTypes + 1);
-        }
-        // first element must NOT be null. If it is null, it is converted to a natural species instead.
-        // second element MAY be a null element.
-        if (_elements[0] == 1) {
-            _elements[0] = 2;
-        }
+         for (uint8 i = 0; i < 2; i++) {
+             _elements[i] = uint8(uint256(keccak256(abi.encode(_randomNumber, i))) % _elementTypes + 1);
+         }
+         // first element must NOT be null. If it is null, it is converted to a natural species instead.
+         // second element MAY be a null element.
+         if (_elements[0] == 1) {
+             _elements[0] = 2;
+         }
 
-        return _elements;
-    }
+         return _elements;
+     }
 
-    function _randomizeNbmonStatsOrigin(uint256 _randomNumber, uint32 _baseEvolveDuration) private view returns (uint32[] memory _nbmonStats) {
-        _nbmonStats = new uint32[](8);
-        
-        //randomizing gender
-        _nbmonStats[0] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _genders + 1);
-        //randomizing rarity
-        _nbmonStats[1] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _rarityChance + 1);
-        //randomizing isShiny
-        _nbmonStats[2] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _shinyChance + 1);
-        //randomizing nbmonType (only origin, so result is always 1)
-        _nbmonStats[3] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % 1 + 1);
-        //evolveDuration
-        _nbmonStats[4] = _baseEvolveDuration;
-        //randomizing nbmonType
-        _nbmonStats[5] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _nbmonTypes + 1);
-        //randomizing genera
-        _nbmonStats[6] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _genera + 1);
-        //randomizing fertility
-        _nbmonStats[7] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _baseFertilityChance + 1);
-    }
-    
-    function mintOrigin(uint256 _randomNumber, address _owner, uint32 _evolveDurationTime) public {
-        _mintOrigin(_randomNumber, _owner, _evolveDurationTime);
-    }
+     function _randomizeNbmonStatsOrigin(uint256 _randomNumber, uint32 _baseEvolveDuration) private view returns (uint32[] memory _nbmonStats) {
+         _nbmonStats = new uint32[](7);
+         
+         //randomizing gender
+         _nbmonStats[0] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _genders + 1);
+         //randomizing rarity
+         _nbmonStats[1] = uint32(uint256(keccak256(abi.encode(_randomNumber, 1))) % _rarityChance + 1);
+         //randomizing isShiny
+         _nbmonStats[2] = uint32(uint256(keccak256(abi.encode(_randomNumber, 2))) % _shinyChance + 1);
+         //randomizing nbmonType (only origin, so result is always 1)
+         _nbmonStats[3] = uint32(uint256(keccak256(abi.encode(_randomNumber, 3))) % 1 + 1);
+         //evolveDuration
+         _nbmonStats[4] = _baseEvolveDuration;
+         //randomizing genera
+         _nbmonStats[5] = uint32(uint256(keccak256(abi.encode(_randomNumber, 4))) % _genera + 1);
+         //randomizing fertility
+         _nbmonStats[6] = uint32(uint256(keccak256(abi.encode(_randomNumber, 5))) % _baseFertilityChance + 1);
+     }
+     
+     function mintOrigin(uint256 _randomNumber, address _owner, uint32 _evolveDurationTime) public {
+         _mintOrigin(_randomNumber, _owner, _evolveDurationTime);
+     }
 
     /// Note: _randomNumber will be randomized from the server side and passed on as an argument.
     function _mintOrigin(uint256 _randomNumber, address _owner, uint32 _baseEvolveDuration) private {
