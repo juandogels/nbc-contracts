@@ -8,7 +8,7 @@ Currently you can have an NBMon of any of these genera.
 4 = Dranexx
 5 = Heree
 6 = Milnas
-7 = Piklish
+7 = Schoggi
 8 = Pongu
 9 = Prawdek
 10 = Roggo

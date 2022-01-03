@@ -28,7 +28,7 @@ contract NBMonCore is NFTCore {
         // check './gamestats/genders.txt' for more info.
         // check './gamestats/rarityChance.txt' for more info.
         // check './gamestats/shinyChance.txt' for more info.
-        //check './gamestats/evolveDuration.txt' for more info.
+        // check './gamestats/evolveDuration.txt' for more info.
         // check './gamestats/nbmonTypes.txt' for more info.
         // check './gamestats/genera.txt' for more info.
         // check './gamestats/fertility.txt' for more info
@@ -92,8 +92,8 @@ contract NBMonCore is NFTCore {
     }
 
     /**
-     * @dev These numbers are the base modulo for the values of each NBMon stat. If changed, the minted NBMon can have a different stat.
-     * Note: Bare in mind that the descriptions for each variable are based off during contract deployment. These variables may change. 
+     * @dev These numbers are the base modulo for the values of each NBMon stat. If changed, the minted NBMon can have a different stat based on the new modulo.
+     * Note: Bear in mind that the descriptions for each variable are based off during contract deployment. These variables may change. 
      * Check in BSCSCAN or by taking an instance of this contract for the actual values of each variable.
      */
     uint8 public _genders = 2;
@@ -103,15 +103,16 @@ contract NBMonCore is NFTCore {
     uint8 public _nbmonTypes = 3;
     //check ./gamestats/genera.txt for further information
     uint16 public _genera = 11;
-    // chance to obtain shiny NBMon is 1/4096.
+    // chance to obtain shiny NBMon is 1/_shinyChance
     uint16 public _shinyChance = 4096;
-    //if result is 1, it's considered null, and therefore no element is assigned. 2-13 are elements identified in elements.txt.
+    //if result is 1, it's considered null, and therefore no element is assigned. The rest of the elements are identified in elements.txt.
     uint8 public _elementTypes = 13;
     uint8 public _maxPotential = 65;
-    // an NBMon can have 0-8 fertility. however, depending on the rarity, the end fertility result will be different and that's why a base fertility chance is used.
+    // depending on the rarity, the end fertility result will be different and that's why a base fertility chance is used.
     // check ./gamestats/fertility.txt' for further information
     uint16 public _baseFertilityChance = 900;
 
+    /// @dev Functions for changing the modulo
     function changeGenders(uint8 genders_) public onlyAdmin {
         _genders = genders_;
     }
@@ -139,82 +140,6 @@ contract NBMonCore is NFTCore {
     /**
      * END OF BASE STATS CHANGE
      */
-
-     function _randomizePotential(uint256 _randomNumber) private view returns (uint8[] memory _potential) {
-         _potential = new uint8[](7);
-
-         for (uint8 i = 0; i < 7; i++) {
-             _potential[i] = uint8(uint256(keccak256(abi.encode(_randomNumber, i))) % _maxPotential + 1);
-         }
-
-         return _potential;
-     }
-
-     function _randomizeElements(uint256 _randomNumber) private view returns (uint8[] memory _elements) {
-         _elements = new uint8[](2);
-
-         for (uint8 i = 0; i < 2; i++) {
-             _elements[i] = uint8(uint256(keccak256(abi.encode(_randomNumber, i))) % _elementTypes + 1);
-         }
-         // first element must NOT be null. If it is null, it is converted to a natural species instead.
-         // second element MAY be a null element.
-         if (_elements[0] == 1) {
-             _elements[0] = 2;
-         }
-
-         return _elements;
-     }
-
-     function _randomizeNbmonStatsOrigin(uint256 _randomNumber, uint32 _baseEvolveDuration) private view returns (uint32[] memory _nbmonStats) {
-         _nbmonStats = new uint32[](7);
-         
-         //randomizing gender
-         _nbmonStats[0] = uint32(uint256(keccak256(abi.encode(_randomNumber, 0))) % _genders + 1);
-         //randomizing rarity
-         _nbmonStats[1] = uint32(uint256(keccak256(abi.encode(_randomNumber, 1))) % _rarityChance + 1);
-         //randomizing isShiny
-         _nbmonStats[2] = uint32(uint256(keccak256(abi.encode(_randomNumber, 2))) % _shinyChance + 1);
-         //randomizing nbmonType (only origin, so result is always 1)
-         _nbmonStats[3] = uint32(uint256(keccak256(abi.encode(_randomNumber, 3))) % 1 + 1);
-         //evolveDuration
-         _nbmonStats[4] = _baseEvolveDuration;
-         //randomizing genera
-         _nbmonStats[5] = uint32(uint256(keccak256(abi.encode(_randomNumber, 4))) % _genera + 1);
-         //randomizing fertility
-         _nbmonStats[6] = uint32(uint256(keccak256(abi.encode(_randomNumber, 5))) % _baseFertilityChance + 1);
-     }
-     
-     function mintOrigin(uint256 _randomNumber, address _owner, uint32 _evolveDurationTime) public {
-         _mintOrigin(_randomNumber, _owner, _evolveDurationTime);
-     }
-
-    /// Note: _randomNumber will be randomized from the server side and passed on as an argument.
-    function _mintOrigin(uint256 _randomNumber, address _owner, uint32 _baseEvolveDuration) private {
-        uint32[] memory _nbmonStats = _randomizeNbmonStatsOrigin(_randomNumber, _baseEvolveDuration);
-        uint8[] memory _elements = _randomizeElements(_randomNumber);
-        uint8[] memory _potential = _randomizePotential(_randomNumber);
-        uint8[] memory _inheritedPassives;
-        uint8[] memory _inheritedMoves;
-
-        NBMon memory _nbmon = NBMon(
-            currentNBMonCount,
-            _owner,
-            block.timestamp,
-            block.timestamp,
-            _nbmonStats,
-            _elements,
-            _potential,
-            _inheritedPassives,
-            _inheritedMoves
-        );
-        nbmons.push(_nbmon);
-        ownerNBMons[_owner].push(_nbmon);
-        _safeMint(_owner, currentNBMonCount);
-        ownerNBMonIds[_owner].push(currentNBMonCount);
-        currentNBMonCount++;
-        ownerNBMonCount[_owner]++;
-        emit NBMonMinted(currentNBMonCount, _owner);
-    }
 
     /**
      * @dev Singular purpose functions designed to make reading code easier for front-end
