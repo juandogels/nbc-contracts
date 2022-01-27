@@ -1,0 +1,20 @@
+Accurate as of 01/01/2022
+
+There are currently a few types available (more can be added in the future):
+
+0 = null (no type, usually for second element if NBMon only has one element)
+1 = ordinary (normal)
+2 = fire 
+3 = water 
+4 = electric
+5 = earth (mixture of ground and rock)
+6 = wind (flying)
+7 = frost (ice)
+8 = crystal (steel)
+9 = nature (grass)
+10 = brawler (fighting)
+11 = spirit (ghost and dark combined)
+12 = magic (fairy)
+13 = psychic 
+14 = reptile (dragon and bug combined)
+15 = toxic (poison)

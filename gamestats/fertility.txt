@@ -1,75 +1,19 @@
 Accurate as of 01/01/2022
 
-Currently an NBMon can have up to 8 fertility (0-8). 
-Rarity plays into fertility in that you have a higher chance of increasing fertility.
-The _baseFertilityChance of each rarity will differ.
-Note that these numbers are only arbitrary as blockchain data but will be reflected in the marketplace/in-game.
+Currently an NBMon can have up to 3000 base fertility points.
+Rarity plays a part into this. The higher the rarity of your NBMon, the lower fertility points you will lose when breeding.
 
-1) Common NBMons: 
-1-100 = 0 fertility
-101-200 = 1 fertility
-201-300 = 2 fertility
-301-400 = 3 fertility
-401-500 = 4 fertility
-501-600 = 5 fertility
-601-700 = 6 fertility
-701-800 = 7 fertility
-801-900 = 8 fertility
+The current standing for rarity to fertility point deduction relationship is:
 
-2) Uncommon NBMons: 
-1-90 = 0 fertility
-91-190 = 1 fertility
-191-290 = 2 fertility
-291-390 = 3 fertility
-391-490 = 4 fertility
-491-590 = 5 fertility
-591-690 = 6 fertility
-691-790 = 7 fertility
-791-900 = 8 fertility
+Common - 1000 fertility points deducted each time it breeds (max 3 times)
+Uncommon - 750 fertility points deducted each time it breeds (max 4 times)
+Rare - 600 fertility points deducted each time it breeds (max 5 times)
+Epic - 500 fertility points deducted each time it breeds (max 6 times)
+Legendary - 375 fertility points deducted each time it breeds (max 8 times)
+Mythical - 300 fertility points deducted each time it breeds (max 10 times)
 
-3) Rare NBMons: 
-1-70 = 0 fertility
-71-150 = 1 fertility
-151-250 = 2 fertility
-251-350 = 3 fertility
-351-450 = 4 fertility
-451-550 = 5 fertility
-551-650 = 6 fertility
-651-775 = 7 fertility
-776-900 = 8 fertility
 
-4) Epic NBMons:
-1-50 = 0 fertility
-51-140 = 1 fertility
-141-230 = 2 fertility
-231-320 = 3 fertility
-321-410 = 4 fertility
-411-500 = 5 fertility
-501-630 = 6 fertility
-631-760 = 7 fertility
-761-900 = 8 fertility
 
-5) Legendary NBMons:
-1-35 = 0 fertility
-36-115 = 1 fertility
-116-195 = 2 fertility
-196-275 = 3 fertility
-276-355 = 4 fertility
-356-475 = 5 fertility
-476-600 = 6 fertility
-601-750 = 7 fertility
-751-900 = 8 fertility
-
-6) Mythical NBMons:
-0-15 = 0 fertility
-16-85 = 1 fertility
-86-155 = 2 fertility
-156-225 = 3 fertility
-226-295 = 4 fertility
-296-365 = 5 fertility
-366-525 = 6 fertility
-526-710 = 7 fertility
-711-900 = 8 fertility
 
 
 

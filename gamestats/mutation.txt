@@ -1,0 +1,22 @@
+Accurate as of 01/01/2022
+
+There is a small chance that an NBMon gets mutated, both from minting and from breeding.
+If the chance is met, the NBMon will be randomized of the available mutation forms from its genus:
+
+Let's say Lamox has 4 mutation types - red, orange, green and blue Lamox.
+For instance, if I breed 2 Lamoxes and the offspring Lamox is mutated, the resulting mutation type will be any of the aforementioned colors.
+The available movesets for mutated NBMons will be different in the game. Let's say a normal Lamox is a toxic and electric type. Red Lamox will allow
+the availability of a special fire-type move in its moveset.
+
+The current chance of mutation is:
+1/1000 
+
+If one parent is mutated, the chance increases to:
+1/100
+
+If both parents are mutated, the chance increases to:
+1/10
+
+Each genus has 4 mutation types possible, so mutation value will be:
+0 - not mutated
+1 to 4 - mutated; randomized

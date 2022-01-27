@@ -1,0 +1,15 @@
+Accurate as of 01/01/2022
+
+Currently there are 3 NBMon types that you can obtain.
+
+1 = origin
+2 = wild
+3 = hybrid
+
+
+1) if origin breeds with another origin, offspring will be origin
+2) if origin breeds with hybrid, offspring will be hybrid
+3) if origin breeds with wild, offspring will be hybrid
+4) if hybrid breeds with wild, offspring will be wild
+5) if hybrid breeds with hybrid, offspring will be hybrid
+5) if wild breeds with wild, offspring will be wild

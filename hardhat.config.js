@@ -1,7 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 const fs = require('fs');
 const account1 = fs
-.readFileSync(".secret")
+.readFileSync(".secret1")
 .toString()
 .trim() || "01234567890123456789";
 const account2 = fs

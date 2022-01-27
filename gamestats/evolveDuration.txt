@@ -5,3 +5,4 @@ Each rarity has an increment to the evolution duration time of 86400 seconds/1 d
 This means that:
 
 Common NBMons take 259200 seconds/3 days.
+

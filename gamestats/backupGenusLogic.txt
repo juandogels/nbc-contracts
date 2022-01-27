@@ -1,0 +1,67 @@
+This logic is used for a backup, assuming we want the logic to be where it is dependent on the offspring's species, which is dependent on
+the parents' species.
+
+/**
+     * @dev Calculates the genus of the offspring.
+     */
+    // function _calculateOffspringGenus(uint256 _randomNumber, uint256 _maleId, uint256 _femaleId) private view returns (uint32 _offspringGenus) {
+    //     NBMon memory _maleParent = nbmons[_maleId] - 1;
+    //     NBMon memory _femaleParent = nbmons[_femaleId] - 1;
+
+    //     /// first check the species of the parents (origin, wild, hybrid)
+    //     uint32 _maleParentSpecies = _maleParent.nbmonStats[3];
+    //     uint32 _femaleParentSpecies = _femaleParent.nbmonStats[3];
+
+    //     /// then check the genus of the parents 
+    //     uint32 _maleParentGenus = _maleParent.nbmonStats[4];
+    //     uint32 _femaleParentGenus = _femaleParent.nbmonStats[4];
+
+    //     // if origin + origin, genus is randomized between both
+    //     if (_maleParentSpecies == 1 && _femaleParentSpecies == 1) {
+    //         // gets rand to be 1 (based off male parent) or 2 (based off female parent)
+    //         uint32 _rand = uint32(uint256(keccak256(abi.encode(_randomNumber, (_maleId + _femaleId)/2))) % 2 + 1);
+    //         if (_rand == 1) {
+    //             _offspringGenus = _maleParentGenus;
+    //         } else {
+    //             _offspringGenus = _femaleParentGenus;
+    //         }
+    //     // if male is origin and female is hybrid, genus will follow male parent
+    //     } else if (_maleParentSpecies == 1 && _femaleParentSpecies == 3) {
+    //         _offspringGenus = _maleParentGenus;
+    //     // if male is hybrid and female is origin, genus will follow female parent
+    //     } else if (_maleParentSpecies == 3 && _femaleParentSpecies == 1) {
+    //         _offspringGenus = _femaleParentGenus;
+    //     // if male is origin and female is wild, genus will follow male parent
+    //     } else if (_maleParentSpecies == 1 && _femaleParentSpecies == 2) {
+    //         _offspringGenus = _maleParentGenus;
+    //     // if male is wild and female is origin, genus will follow female parent
+    //     } else if (_maleParentSpecies == 2 && _femaleParentSpecies == 1) {
+    //         _offspringGenus = _femaleParentGenus;
+    //     // if male is hybrid and female is wild, genus will follow male parent
+    //     } else if (_maleParentSpecies == 3 && _femaleParentSpecies == 2) {
+    //         _offspringGenus = _maleParentGenus;
+    //     // if male is wild and female is hybrid, genus will follow female parent
+    //     } else if (_maleParentSpecies == 2 && _femaleParentSpecies == 3) {
+    //         _offspringGenus = _femaleParentGenus;
+    //     // if male and female is hybrid, genus is randomized between both
+    //     } else if (_maleParentSpecies == 3 && _femaleParentSpecies == 3) {
+    //         // gets rand to be 1 (based off male parent) or 2 (based off female parent)
+    //         uint32 _rand = uint32(uint256(keccak256(abi.encode(_randomNumber, (_maleId + _femaleId)/2))) % 2 + 1);
+    //         if (_rand == 1) {
+    //             _offspringGenus = _maleParentGenus;
+    //         } else {
+    //             _offspringGenus = _femaleParentGenus;
+    //         }
+    //     // if male and female is wild, genus is randomized between both
+    //     } else if (_maleParentSpecies == 2 && _femaleParentSpecies == 2) {
+    //         // gets rand to be 1 (based off male parent) or 2 (based off female parent)
+    //         uint32 _rand = uint32(uint256(keccak256(abi.encode(_randomNumber, (_maleId + _femaleId)/2))) % 2 + 1);
+    //         if (_rand == 1) {
+    //             _offspringGenus = _maleParentGenus;
+    //         } else {
+    //             _offspringGenus = _femaleParentGenus;
+    //         }
+    //     }
+
+    //     return _offspringGenus;
+    // }

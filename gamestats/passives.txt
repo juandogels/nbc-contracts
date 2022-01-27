@@ -1,0 +1,32 @@
+Accurate as of 08/01/2022. 
+
+Note that these passives are just placeholder names (taken from Monster Legends)
+They still have no full description yet while we are making the mechanics.
+
+Defense passives:
+1 = Cold Shield
+2 = Spirits Shield
+3 = Tenacity Shield
+4 = Hammer Shield
+5 = Healing Essence
+6 = Restoring Essence
+7 = Last Health Essence
+8 = Phantom Essence
+9 = Energy Banner
+10 = Revitalizing Banner
+11 = Life Banner
+12 = Charging Banner 
+
+Attack passives:
+13 = Flaming Sword
+14 = Soul-Shattering Sword
+15 = Avenger Sword
+16 = Jakugan Sword
+17 = Amulet of Haste
+18 = Widow Amulet
+19 = Supercharged Amulet
+20 = Osur's Amulet
+21 = Enraged Mask
+22 = Mask of Darkness
+23 = Fury Mask
+24 = Baltasar's Mask

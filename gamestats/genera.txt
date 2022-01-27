@@ -2,14 +2,17 @@ Accurate as of 01/01/2022
 
 Currently you can have an NBMon of any of these genera. 
 
-1 = Lamox
-2 = Licorine
-3 = Birvo
-4 = Dranexx
-5 = Heree
-6 = Milnas
-7 = Schoggi
-8 = Pongu
-9 = Prawdek
-10 = Roggo
-11 = Todillo
+ORIGINS:
+1 = Lamox (toxic, electric)
+2 = Licorine (fire, earth)
+3 = Birvo (wind)
+4 = Dranexx (psychic, spirit)
+5 = Heree (nature)
+6 = Milnas (fire)
+7 = Schoggi (neutral)
+8 = Pongu (crystal, frost)
+9 = Prawdek (toxic, nature)
+10 = Roggo (nature, earth)
+11 = Todillo (earth, reptile)
+
+WILD:
