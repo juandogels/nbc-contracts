@@ -4,209 +4,171 @@ pragma solidity ^0.8.6;
 
 import "../BEP721/BEP721.sol";
 import "../security/Context.sol";
-import "../BEP721/IBEP721Receiver.sol";
 
 /**
- * @dev Base contract for any contracts inheriting it to perform similar marketplace mechanisms
+ * @dev Marketplace is a base contract that contains basic 
+ * functionality for all inheriting marketplace contracts.
+ * Note: Currently only supports a fixed price type of sale.
  */
 abstract contract MarketplaceCore is Context {
-    struct Auction {
-        // address of the current owner of the NFT to be sold (the seller)
+    /// @dev Represents a fixed price sale of the NFT
+    struct FixedPriceSale {
+        // seller of the NFT
         address seller;
-        // starting price (in wei) of the NFT to be sold
-        uint128 startingPrice;
-        // ending price (in wei) of the NFT to be sold
-        uint128 endingPrice;
-        // duration (in seconds) of the auction
-        uint64 duration;
-        // time when auction is started
-        // Note: 0 when auction is concluded
+        // price of the NFT being sold in wei
+        uint128 price;
+        // timestamp of when sale of NFT starts, 0 when concluded
         uint256 startedAt;
     }
 
-    // contract of the NFT to be sold (e.g. NBMon contract)
-    BEP721 public nftContract;
+    /// @dev sales fee for all NFT sales, ranges from 0 - 10000 to accommodate double decimal points
+    uint16 public salesFee;
 
-    // fee for each auction, measured in basis points (1/100th of a percent)
-    // Values 0 - 10000 map to 0 -100%
-    uint256 public auctionFee;
+    /// @dev developer's cut for all NFT sales, ranges from 0 - 10000 to accommodate double decimal places.
+    uint16 public devCut;
 
-    // mapping from a token id to the corresponding auction
-    mapping (uint256 => Auction) public auctions;
+    /**
+     * @dev Two mappings to store NFT sales in the marketplace.
+     * salesByAddress maps from the seller to an NFT ID they're selling and returns an instance of the 
+     * FixedPriceSale struct for this particular NFT.
+     * 
+     * sales maps directly from the NFT ID (no need for the address) and returns the FixedSalePrice
+     * struct for this particular NFT.
+     */
+    mapping (uint256 => FixedPriceSale) public sales;
 
-    event AuctionCreated(
+    /// @dev Triggers whenever a user sells their NFT.
+    event SaleCreated(
         address indexed _nftContract,
         uint256 indexed _tokenId,
-        uint256 _startingPrice,
-        uint256 _endingPrice,
-        uint256 _duration,
+        uint128 _price,
+        uint256 _startedAt,
         address _seller
     );
 
-    event AuctionSuccessful(
+    /// @dev Triggers whenever an NFT is successfully sold.
+    event Sold(
         address indexed _nftContract,
         uint256 indexed _tokenId,
-        uint256 _endingPrice,
-        address _winner
+        uint256 _price,
+        address _soldBy,
+        address _newOwner
     );
 
-    event AuctionCancelled(
-        address _nftContract,
-        uint256 _tokenId
+    /**
+     * @dev Triggers when an ongoing sale of the NFT is cancelled.
+     */
+    event CancelSale(
+        address indexed _nftContract,
+        uint256 indexed _tokenId
     );
 
-
-    /// @dev Returns true if the claimant owns the token.   
-    /// @param _claimant - Address claiming to own the token.
-    /// @param _tokenId - ID of token whose ownership to verify.    
-    function _owns(address _claimant, uint256 _tokenId) internal view returns (bool) {
-        return (nftContract.ownerOf(_tokenId) == _claimant);
+    /**
+     * @dev Checks if the _seller owns _tokenId. Returns true if they do.
+     */
+    function _owns(address _nftContract, address _seller, uint256 _tokenId) internal view returns (bool) {
+        BEP721 nftContract_ = _getNftContract(_nftContract);
+        return (nftContract_.ownerOf(_tokenId) == _seller);
     }
 
-    /// @dev Escrows the NFT, assigning ownership to this contract.
-    /// Throws if the escrow fails.
-    /// @param _owner - Current owner address of token to escrow.
-    /// @param _tokenId - ID of token whose approval to verify.
-    function _escrow(address _owner, uint256 _tokenId) internal {
-        nftContract.safeTransferFrom(_owner, address(this), _tokenId);
+    /**
+     * @dev Transfers the NFT from _owner to this contract (address(this)) and therefore
+     * also assigns/transfers the ownership from _owner to this contract as well.
+     * Throws if escrow fails.
+     *
+     * @dev Note: Please assure that the user already approves the contract for transferring
+     * via calling the approve() function in {BEP721}.
+     */
+    function _escrow(address _nftContract, address _owner, uint256 _tokenId) internal {
+        BEP721 nftContract_ = _getNftContract(_nftContract);
+        nftContract_.safeTransferFrom(_owner, address(this), _tokenId);
     }
 
-    /// @dev Transfers an NFT owned by this contract to another address.
-    /// Returns true if the transfer succeeds.
-    /// @param _to - Address to transfer NFT to.
-    /// @param _tokenId - ID of token to transfer.
-    function _transfer(address _to, uint256 _tokenId) internal {
-        nftContract.safeTransfer(address(this), _to, _tokenId,"");
+    /**
+     * @dev Transfers an NFT owned by this contract to _to.
+     */
+    function _transfer(address _nftContract, address _to, uint256 _tokenId) internal {
+        BEP721 nftContract_ = _getNftContract(_nftContract);
+        nftContract_.safeTransfer(address(this), _to, _tokenId,"");
     }
 
-    function _addAuction(uint256 _tokenId, Auction memory _auction, address _seller) internal {
-        require(_auction.duration >= 1 minutes, "MarketplaceCore: Auction duration must be at least 1 minute");
-        auctions[_tokenId] = _auction;
-        emit AuctionCreated(
-            address(nftContract),
+    /**
+     * @dev Adds the fixed price (FP) sale to the map/list of current sales.
+     * Emits the SaleCreated event.
+     */
+    function _addFPSale(address _nftContract, uint256 _tokenId, FixedPriceSale memory _fpSale, address _seller) internal {
+        sales[_tokenId] = _fpSale;
+        emit SaleCreated(
+            _nftContract,
             _tokenId,
-            _auction.startingPrice,
-            _auction.endingPrice,
-            _auction.duration,
+            _fpSale.price,
+            _fpSale.startedAt,
             _seller
         );
-    } 
-
-    function _cancelAuction(uint256 _tokenId, address _seller) internal {
-        _removeAuction(_tokenId);
-        _transfer(_seller, _tokenId);
-        emit AuctionCancelled(
-            address(nftContract),
-            _tokenId
-        );
     }
 
-    function _computeFee(uint256 _price) internal view returns (uint256) {
-        return _price * auctionFee / 10000;
+    /**
+     * @dev Cancels the FP sale and removes it from the map/list of current sales.
+     * Emits the CancelSale event.
+     */
+    function _cancelFPSale(address _nftContract, uint256 _tokenId, address _seller) internal {
+        _removeSale(_tokenId);
+        _transfer(_nftContract, _seller, _tokenId);
+        emit CancelSale(_nftContract, _tokenId);
     }
 
-    /// @dev Computes the price and transfers winnings.
-    /// Does NOT transfer ownership of token.
-    function _bid(uint256 _tokenId, uint256 _bidAmount) internal returns (uint256) {
-        // Get a reference to the auction struct
-        Auction storage _auction = auctions[_tokenId];
+    /**
+     *@dev Computes total fees for all sales based on the price.
+     */
+    function _computeTotalFee(uint128 _price) internal view returns (uint128) {
+        return _price * (devCut + salesFee) / 100;
+    }
 
-        // Explicitly check that this auction is currently live.
-        // (Because of how Ethereum mappings work, we can't just count
-        // on the lookup above failing. An invalid _tokenId will just
-        // return an auction object that is all zeros.)
-        require(_isOnAuction(_auction), "MarketplaceCore: Specified token ID is not on auction");
+    /**
+     * @dev Buyer purchases the NFT and transfers payment to seller.
+     */
+    function _buy(address _nftContract, uint256 _tokenId, uint128 _buyAmount) internal {
+        FixedPriceSale storage _fpSale = sales[_tokenId];
+        require(_isOnSale(_fpSale), "FixedPrice: Specified NFT is not on sale");
 
-        // Check that the incoming bid is higher than the current
-        // price
-        uint256 _price = _currentPrice(_auction);
-        require(_bidAmount >= _price, "MarketplaceCore: Bid amount is less than price");
+        uint128 _price = _fpSale.price;
+        require(_buyAmount >= _price);
+        address payable _seller = payable(_fpSale.seller);
+        _removeSale(_tokenId);
 
-        // Grab a reference to the seller before the auction struct
-        // gets deleted.
-        address payable _seller = payable(_auction.seller);
-
-        // The bid is good! Remove the auction before sending the fees
-        // to the sender so we can't have a reentrancy attack.
-        _removeAuction(_tokenId);
-
-        // Transfer proceeds to seller (if there are any!)
         if (_price > 0) {
-        //  Calculate the auctioneer's cut.
-        uint256 _auctioneerCut = _computeFee(_price);
-        uint256 _sellerProceeds = _price - _auctioneerCut;
-
-        // NOTE: Doing a transfer() in the middle of a complex
-        // method like this is generally discouraged because of
-        // reentrancy attacks and DoS attacks if the seller is
-        // a contract with an invalid fallback function. We explicitly
-        // guard against reentrancy attacks by removing the auction
-        // before calling transfer(), and the only thing the seller
-        // can DoS is the sale of their own asset! (And if it's an
-        // accident, they can call cancelAuction(). )
-        _seller.transfer(_sellerProceeds);
+            uint128 _sellerProceeds = _price - _computeTotalFee(_price);
+            _seller.transfer(_sellerProceeds);
         }
 
-        emit AuctionSuccessful(address(nftContract), _tokenId, _price, _msgSender());
-
-        return _price;
+        emit Sold(_nftContract, _tokenId, _price, _seller, _msgSender());
     }
 
-    /// @dev Removes an auction from the list of open auctions.
-    /// @param _tokenId - ID of NFT on auction.
-    function _removeAuction(uint256 _tokenId) internal {
-        delete auctions[_tokenId];
+    /**
+     * @dev Removes the sale from the list of open sales.
+     */
+    function _removeSale(uint256 _tokenId) internal {
+        delete sales[_tokenId];
     }
 
-    /// @dev Returns true if the NFT is on auction.
-    /// @param _auction - Auction to check.
-    function _isOnAuction(Auction storage _auction) internal view returns (bool) {
-        return (_auction.startedAt > 0);
+    /**
+     * @dev Checks if the NFT is on sale.
+     */
+    function _isOnSale(FixedPriceSale memory _fpSale) internal pure returns (bool) {
+        return (_fpSale.startedAt > 0);
     }
 
-    /// @dev Returns current price of an NFT on auction. Broken into two
-    ///  functions (this one, that computes the duration from the auction
-    ///  structure, and the other that does the price computation) so we
-    ///  can easily test that the price computation works correctly.
-    function _currentPrice(Auction storage _auction) internal view returns (uint256) {
-        uint256 secondsPassed = 0;
-
-        return _computeCurrentPrice(
-            _auction.startingPrice,
-            _auction.endingPrice,
-            _auction.duration,
-            secondsPassed
-        );
+    /**
+     * @dev Returns the BEP721 type of the looked up _nftContract.
+     */
+    function _getNftContract(address _nftContract) internal pure returns (BEP721) {
+        return BEP721(_nftContract);
     }
 
-    /// @dev Computes the current price of an auction. Factored out
-    ///  from _currentPrice so we can run extensive unit tests.
-    ///  When testing, make this function public and turn on
-    ///  `Current price computation` test suite.
-    function _computeCurrentPrice(
-        uint256 _startingPrice,
-        uint256 _endingPrice,
-        uint256 _duration,
-        uint256 _secondsPassed
-    )
-        internal
-        pure
-        returns (uint256)
-    {
-        if (_secondsPassed >= _duration) {
-            // We've reached the end of the dynamic pricing portion
-            // of the auction, just return the end price.
-            return _endingPrice;
-        } else {
-            // Starting price can be higher than ending price (and often is!), so
-            // this delta can be negative.
-            int256 totalPriceChange = int256(_endingPrice) - int256(_startingPrice);
-            int256 currentPriceChange = totalPriceChange * int256(_secondsPassed) / int256(_duration);
-            // currentPriceChange can be negative, but if so, will have a magnitude
-            // less that _startingPrice. Thus, this result will always end up positive.
-            int256 currentPrice = int256(_startingPrice) + currentPriceChange;
-            
-            return uint256(currentPrice);
-        }
-    }
+
+
+
+
+
+
 }
