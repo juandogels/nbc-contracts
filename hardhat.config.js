@@ -26,7 +26,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
  module.exports = {
-  defaultNetwork: "mainnet",
+  defaultNetwork: "testnet",
   networks: {
     okexchaintest: {
       url: "https://exchaintestrpc.okex.org",

@@ -6,7 +6,7 @@ import "../marketplace/MarketplaceCore.sol";
 import "../security/Pausable.sol";
 
 /**
- * @dev Contract for NBMon-related marketplace logic
+ * @dev Contract for marketplace logic
  */
 contract NBMarketplace is MarketplaceCore, Pausable {
 
@@ -56,7 +56,7 @@ contract NBMarketplace is MarketplaceCore, Pausable {
      * Note: Can be called when contract is paused.
      */
     function cancelSale(address _nftContract, uint256 _tokenId) public {
-        FixedPriceSale storage _fpSale = sales[_tokenId];
+        FixedPriceSale storage _fpSale = sales[_nftContract][_tokenId];
         require(_isOnSale(_fpSale), "NBMarketplace: Specified NFT is not on sale");
         require(_msgSender() == _fpSale.seller, "NBMarketplace: _msgSender() is not the seller of the NFT");
         _cancelFPSale(_nftContract, _tokenId, _fpSale.seller);
@@ -67,7 +67,7 @@ contract NBMarketplace is MarketplaceCore, Pausable {
      * Only the owner of the contract can do this and should only be used in emergencies.
      */
     function cancelSaleWhenPaused(address _nftContract, uint256 _tokenId) public whenPaused onlyAdmin {
-        FixedPriceSale storage _fpSale = sales[_tokenId];
+        FixedPriceSale storage _fpSale = sales[_nftContract][_tokenId];
         require(_isOnSale(_fpSale), "NBMarketplace: Specified NFT is not on sale");
         _cancelFPSale(_nftContract, _tokenId, _fpSale.seller);
     }
@@ -75,8 +75,8 @@ contract NBMarketplace is MarketplaceCore, Pausable {
     /**
      * @dev Returns sale info for an NFT on sale.
      */
-    function getFPSale(uint256 _tokenId) public view returns (address _seller, uint128 _price, uint256 _startedAt) {
-        FixedPriceSale storage _fpSale = sales[_tokenId];
+    function getFPSale(address _nftContract, uint256 _tokenId) public view returns (address _seller, uint128 _price, uint256 _startedAt) {
+        FixedPriceSale storage _fpSale = sales[_nftContract][_tokenId];
         require(_isOnSale(_fpSale), "NBMarketplace: Specified NFT is not on sale");
 
         return (_fpSale.seller, _fpSale.price, _fpSale.startedAt);

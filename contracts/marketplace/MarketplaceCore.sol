@@ -29,13 +29,9 @@ abstract contract MarketplaceCore is Context {
 
     /**
      * @dev Two mappings to store NFT sales in the marketplace.
-     * salesByAddress maps from the seller to an NFT ID they're selling and returns an instance of the 
-     * FixedPriceSale struct for this particular NFT.
-     * 
-     * sales maps directly from the NFT ID (no need for the address) and returns the FixedSalePrice
-     * struct for this particular NFT.
+     * maps from the NFT contract address to the NFT ID which will return a FixedPriceSale list of the item for sale
      */
-    mapping (uint256 => FixedPriceSale) public sales;
+    mapping (address => mapping(uint256 => FixedPriceSale)) public sales;
 
     /// @dev Triggers whenever a user sells their NFT.
     event SaleCreated(
@@ -97,7 +93,7 @@ abstract contract MarketplaceCore is Context {
      * Emits the SaleCreated event.
      */
     function _addFPSale(address _nftContract, uint256 _tokenId, FixedPriceSale memory _fpSale, address _seller) internal {
-        sales[_tokenId] = _fpSale;
+        sales[_nftContract][_tokenId] = _fpSale;
         emit SaleCreated(
             _nftContract,
             _tokenId,
@@ -112,7 +108,7 @@ abstract contract MarketplaceCore is Context {
      * Emits the CancelSale event.
      */
     function _cancelFPSale(address _nftContract, uint256 _tokenId, address _seller) internal {
-        _removeSale(_tokenId);
+        _removeSale(_nftContract, _tokenId);
         _transfer(_nftContract, _seller, _tokenId);
         emit CancelSale(_nftContract, _tokenId);
     }
@@ -128,13 +124,13 @@ abstract contract MarketplaceCore is Context {
      * @dev Buyer purchases the NFT and transfers payment to seller.
      */
     function _buy(address _nftContract, uint256 _tokenId, uint128 _buyAmount) internal {
-        FixedPriceSale storage _fpSale = sales[_tokenId];
+        FixedPriceSale storage _fpSale = sales[_nftContract][_tokenId];
         require(_isOnSale(_fpSale), "FixedPrice: Specified NFT is not on sale");
 
         uint128 _price = _fpSale.price;
         require(_buyAmount >= _price);
         address payable _seller = payable(_fpSale.seller);
-        _removeSale(_tokenId);
+        _removeSale(_nftContract, _tokenId);
 
         if (_price > 0) {
             uint128 _sellerProceeds = _price - _computeTotalFee(_price);
@@ -147,8 +143,8 @@ abstract contract MarketplaceCore is Context {
     /**
      * @dev Removes the sale from the list of open sales.
      */
-    function _removeSale(uint256 _tokenId) internal {
-        delete sales[_tokenId];
+    function _removeSale(address _nftContract, uint256 _tokenId) internal {
+        delete sales[_nftContract][_tokenId];
     }
 
     /**
